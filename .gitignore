@@ -1,0 +1,7 @@
+### --- SECURITÉ & SECRETS ---
+deployments/nginx/certs/*.crt
+deployments/nginx/certs/*.key
+deployments/nginx/.htpasswd
+
+
+

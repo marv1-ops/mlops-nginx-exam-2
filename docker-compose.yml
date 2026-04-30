@@ -1,4 +1,43 @@
 services:
+  # --- API SERVICES ---
+  api-v1:
+    build:
+      context: .
+      dockerfile: src/api/v1/Dockerfile
+    deploy:
+      replicas: 3
+    networks:
+      - mlops-network
+
+  api-v2:
+    build:
+      context: .
+      dockerfile: src/api/v2/Dockerfile
+    networks:
+      - mlops-network
+
+  # --- PROXY & SECURITY ---
+  nginx:
+    build: 
+      context: ./deployments/nginx
+    container_name: nginx_revproxy
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - mlops-network
+
+  # --- MONITORING ---
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    container_name: nginx_exporter
+    command:
+      - -nginx.scrape-uri=https://nginx/nginx_status
+      - -nginx.ssl-verify=false
+    depends_on:
+      - nginx
+    networks:
+      - mlops-network
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus_server
@@ -22,6 +61,10 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+
+networks:
+  mlops-network:
+    driver: bridge
 
 volumes:
   prometheus_data:
